@@ -248,3 +248,12 @@ body {
   .stats-row { grid-template-columns: 1fr 1fr; }
   .navbar { padding: 1rem; }
 }
+@media (max-width: 600px) {
+  .landing-nav-links { display: none !important; }
+  
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  
+  .page { padding: 1rem; }
+  
+  h1 { font-size: 1.8rem !important; }
+}
