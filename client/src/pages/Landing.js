@@ -6,7 +6,7 @@ const EMOTIONS = ['😊 happy', '😢 sad', '😰 anxious', '😡 angry', '🌟 
 export default function Landing() {
   const navigate = useNavigate();
   const [activeEmotion, setActiveEmotion] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
+ 
   const isMobile = window.innerWidth < 768;
 
   React.useEffect(() => {
