@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 
 const EMOTION_COLORS = {
@@ -37,11 +37,7 @@ export default function Journal({ user }) {
   const greetingHour = new Date().getHours();
   const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 17 ? 'Good afternoon' : 'Good evening';
 
-  useEffect(() => {
-    fetchStreak();
-  }, []);
-
-  const fetchStreak = async () => {
+  const fetchStreak = useCallback(async () => {
     try {
       const res = await fetch(`${SERVER}/api/journal/entries/${user.id}?days=30`);
       const data = await res.json();
@@ -59,9 +55,12 @@ export default function Journal({ user }) {
         setStreak(s);
       }
     } catch {}
-  };
+  }, [user.id]);
 
-  // Voice input
+  useEffect(() => {
+    fetchStreak();
+  }, [fetchStreak]);
+
   const toggleVoice = () => {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       alert('Voice input not supported in this browser. Try Chrome!');
@@ -87,7 +86,6 @@ export default function Journal({ user }) {
     setIsListening(true);
   };
 
-  // Meditation timer
   const startTimer = (minutes) => {
     if (timerRunning) {
       clearInterval(timerRef.current);
@@ -114,7 +112,6 @@ export default function Journal({ user }) {
 
   const formatTime = (s) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
 
-  // Submit
   const handleSubmit = async () => {
     if (!content.trim() || content.trim().length < 10) {
       setError('Please write at least a few words.');
@@ -138,7 +135,6 @@ export default function Journal({ user }) {
     setLoading(false);
   };
 
-  // Export PDF
   const exportPDF = () => {
     if (!result) return;
     const doc = new jsPDF();
@@ -150,7 +146,6 @@ export default function Journal({ user }) {
     doc.setFontSize(11);
     const lines = doc.splitTextToSize(content, 170);
     doc.text(lines, 20, 60);
-    doc.setFontSize(11);
     const responseLines = doc.splitTextToSize(`AI Response: ${result.response}`, 170);
     doc.text(responseLines, 20, 60 + lines.length * 7 + 10);
     doc.save(`moodmirror-${new Date().toISOString().split('T')[0]}.pdf`);
@@ -161,7 +156,6 @@ export default function Journal({ user }) {
   return (
     <main className="page">
 
-      {/* Header with streak */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="journal-header" style={{ marginBottom: 0 }}>
           <h1>{greeting} 👋</h1>
@@ -180,7 +174,6 @@ export default function Journal({ user }) {
         )}
       </div>
 
-      {/* Daily Quote */}
       <div style={{
         background: 'rgba(232,149,109,0.06)', border: '1px solid rgba(232,149,109,0.15)',
         borderRadius: '12px', padding: '1rem 1.25rem', marginBottom: '1.5rem',
@@ -189,7 +182,6 @@ export default function Journal({ user }) {
         💭 "{quote}"
       </div>
 
-      {/* Meditation Timer */}
       <div style={{
         background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: '14px', padding: '1.25rem', marginBottom: '1.5rem'
@@ -231,7 +223,6 @@ export default function Journal({ user }) {
         )}
       </div>
 
-      {/* Journal Card */}
       <div className="card">
         <div style={{ position: 'relative' }}>
           <textarea
@@ -241,7 +232,6 @@ export default function Journal({ user }) {
             onChange={e => setContent(e.target.value)}
             maxLength={2000}
           />
-          {/* Voice button */}
           <button onClick={toggleVoice} style={{
             position: 'absolute', bottom: '12px', right: '12px',
             background: isListening ? '#ef4444' : 'var(--surface2)',
@@ -279,7 +269,6 @@ export default function Journal({ user }) {
         </div>
       </div>
 
-      {/* AI Response */}
       {result && (
         <div className="ai-response-card">
           <div className="ai-response-header">
